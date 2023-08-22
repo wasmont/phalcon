@@ -1,0 +1,44 @@
+version: "3.2"
+
+services:
+    # image project
+    app_phalcon:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        working_dir: /var/www/
+        volumes:
+            - ./:/var/www
+        networks:
+            - local_phalcon
+
+    # nginx
+    nginx:
+        image: nginx:latest
+        restart: unless-stopped
+        ports:
+            - "9989:80"
+        volumes:
+            - ./:/var/www
+            - ./docker-config/nginx/site.conf:/etc/nginx/conf.d/site.conf
+        networks:
+            - local_phalcon
+
+    db_mysql:
+        image: mysql:5.7.22
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_USER: ${DB_USERNAME}
+        volumes:
+            - ./.docker/mysql/dbdata:/var/lib/mysql
+        ports:
+            - "3399:3306"
+        networks:        
+            - local_phalcon
+networks:
+    local_phalcon:
+        driver: bridge        
